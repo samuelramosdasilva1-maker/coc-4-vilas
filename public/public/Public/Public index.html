@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Minhas 4 Vilas - Clash of Clans</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101820;
+      color: white;
+    }
+
+    header {
+      text-align: center;
+      padding: 25px 15px;
+      background: #1d2a35;
+    }
+
+    h1 {
+      margin: 0 0 15px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #status {
+      text-align: center;
+      padding: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+      );
+
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .card {
+      background: #1b2730;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 15px #0005;
+    }
+
+    .card h2 {
+      margin-top: 0;
+    }
+
+    .tag {
+      opacity: 0.7;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #ffffff18;
+    }
+
+    .erro {
+      color: #ff8a8a;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+
+  <h1>🏰 Minhas 4 Vilas</h1>
+
+  <button onclick="carregarVilas()">
+    🔄 Atualizar
+  </button>
+
+</header>
+
+<div id="status">
+  Carregando...
+</div>
+
+<main id="vilas" class="grid"></main>
+
+<script>
+
+async function carregarVilas() {
+
+  const status =
+    document.getElementById("status");
+
+  const container =
+    document.getElementById("vilas");
+
+  status.textContent =
+    "⚔️ Consultando suas vilas...";
+
+  container.innerHTML = "";
+
+  try {
+
+    const resposta =
+      await fetch("/api/villages");
+
+    const vilas =
+      await resposta.json();
+
+    if (vilas.error) {
+      throw new Error(vilas.error);
+    }
+
+    vilas.forEach(vila => {
+
+      const dados = vila.data;
+
+      const card =
+        document.createElement("section");
+
+      card.className = "card";
+
+      if (!vila.ok) {
+
+        card.innerHTML = `
+          <h2>🏰 ${vila.tag}</h2>
+
+          <p class="erro">
+            ${dados?.reason ||
+              "Erro ao consultar esta vila."}
+          </p>
+        `;
+
+      } else {
+
+        const liga =
+          dados.league?.name ||
+          "Sem liga";
+
+        card.innerHTML = `
+
+          <h2>
+            🏰 ${dados.name || "Sem nome"}
+          </h2>
+
+          <div class="tag">
+            ${vila.tag}
+          </div>
+
+          <div class="stat">
+            <span>🏰 Centro de Vila</span>
+            <b>
+              ${dados.townHallLevel ?? "-"}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span>🏆 Troféus</span>
+            <b>
+              ${dados.trophies ?? "-"}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span>🥇 Melhor marca</span>
+            <b>
+              ${dados.bestTrophies ?? "-"}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span>🏅 Liga</span>
+            <b>
+              ${liga}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span>⚔️ Ataques</span>
+            <b>
+              ${dados.attackWins ?? "-"}
+            </b>
+          </div>
+
+          <div class="stat">
+            <span>🛡️ Defesas</span>
+            <b>
+              ${dados.defenseWins ?? "-"}
+            </b>
+          </div>
+
+        `;
+      }
+
+      container.appendChild(card);
+
+    });
+
+    status.textContent =
+      "✅ Dados atualizados!";
+
+  } catch (erro) {
+
+    status.textContent =
+      "❌ Erro: " + erro.message;
+
+  }
+
+}
+
+carregarVilas();
+
+</script>
+
+</body>
+</html>
